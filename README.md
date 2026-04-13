@@ -8,7 +8,7 @@ A complete machine learning pipeline for automated prostate cancer severity clas
 - **Medical Imaging**: Proper DICOM processing with windowing, rescale, and enhancement
 - **NLP Risk Assessment**: Automated Gleason score extraction and 3-class risk classification
 - **CNN Model**: TensorFlow/Keras convolutional neural network for multi-class classification
-- **Interactive Demo**: Streamlit web app for visualization and testing
+- **Interactive Demo**: Gradio web app for lightweight model inference and testing
 
 ## 📊 Pipeline Overview
 
@@ -17,7 +17,7 @@ A complete machine learning pipeline for automated prostate cancer severity clas
 3. **DICOM Processing**: Convert medical images with proper preprocessing
 4. **Data Preparation**: Image-label mapping and stratified train/test splitting
 5. **CNN Training**: Deep learning model with 3-class classification and class weighting
-6. **Web Demo**: Interactive Streamlit application for risk assessment
+- **Web Demo**: Interactive Gradio application for risk assessment
 
 ## 🏥 Medical Data Processing
 
@@ -49,7 +49,7 @@ A complete machine learning pipeline for automated prostate cancer severity clas
 
 ## 🖥️ Interactive Web App
 
-The Streamlit web application provides:
+The Gradio web application provides:
 
 - **Overview**: Pipeline explanation and key metrics
 - **Data Analysis**: Statistics and risk class distribution
@@ -63,30 +63,23 @@ The Streamlit web application provides:
 - **Medium Risk (1)**: Gleason score =7
 - **High Risk (2)**: Gleason score ≥8 or aggressive cancer
 
-### Running the Web App
+### Running the Gradio App
 
 ```bash
 # Install dependencies
 pip install -r requirements.txt
 
-# Run the training pipeline (optional - model already trained)
-python create_better_model.py
-
-# Test the model accuracy
-python test_model_accuracy.py
-
-# Create sample folders for testing
-python copy_test_samples.py
-
-# Launch the web app
-streamlit run app.py
+# Launch the Gradio app (model.tflite is pre-converted)
+python app.py
 ```
 
-The app will be available at: http://localhost:8501
+The app will launch locally at `http://localhost:7860` (or the URL printed by Gradio).
+
+**Note**: The `model.tflite` file is already included in the repo. The `convert_h5_to_tflite.py` script is provided for reference if you need to regenerate the model from `prostate_cancer_model.h5`.
 
 ## ☁️ Hosting the App
 
-This repo is built as a Streamlit web app and can be hosted locally or in the cloud.
+This repo is built as a Gradio web app and can be hosted locally or in the cloud.
 
 ### Local hosting
 1. Activate your Python environment.
@@ -96,20 +89,22 @@ This repo is built as a Streamlit web app and can be hosted locally or in the cl
    ```
 3. Start the app:
    ```bash
-   streamlit run app.py
+   python app.py
    ```
-4. Open `http://localhost:8501` in your browser.
+4. Open the Gradio URL printed in the terminal.
 
-### Streamlit Community Cloud
-Best for quick deployment with no server management.
+### Hugging Face Spaces
+Great for community sharing and integration with ML models. **Tested and working with Gradio 6.12.0 + TensorFlow 2.21.0 + Python 3.13.**
 
-1. Push the repo to GitHub.
-2. Create a Streamlit Community Cloud app.
-3. Connect the GitHub repository.
-4. Set the app file to `app.py`.
-5. Deploy.
+1. Push the repo to GitHub or directly to Hugging Face Spaces.
+2. Go to [Hugging Face Spaces](https://huggingface.co/spaces).
+3. Create a new Space, select "Gradio" as the SDK.
+4. Connect your GitHub repository or upload files directly.
+5. Ensure `app.py`, `model.tflite`, and `requirements.txt` are present, then deploy.
 
-> Important: `prostate_cancer_model.h5` (37MB) is tracked with Git LFS. `metadata.xlsx`, and `processed_images/` must be available to the deployed app. If these files are too large for GitHub, use Git LFS or external storage and update the app accordingly.
+**Deployment Note**: The lightweight TFLite model (~50% smaller than H5) and minimal Gradio interface ensure fast startup and low resource usage on Spaces. No pre-conversion needed—`model.tflite` is ready to use.
+
+> Note: For large image datasets, Hugging Face Spaces has storage limits. The app works without `processed_images/` (gallery will be empty), or host images externally.
 
 ### Docker or cloud VM hosting
 For a custom server or Docker deployment:
@@ -120,40 +115,44 @@ For a custom server or Docker deployment:
    ```bash
    pip install -r requirements.txt
    ```
-4. Run Streamlit with a public host address:
+4. Run the Gradio app:
    ```bash
-   streamlit run app.py --server.address 0.0.0.0 --server.port 8501
+   python app.py
    ```
-5. Open the external server URL on port `8501`.
+5. Open the external Gradio URL printed in the terminal.
 
 ### Hosting notes
-- The app requires the trained model file (tracked with Git LFS) and metadata to run.
+- The app requires `model.tflite` and metadata to run.
 - The `processed_images/` folder (30,903 files, ~1-2GB) is excluded from Git due to size limits. For full functionality:
   - Create a ZIP: `Compress-Archive -Path processed_images -DestinationPath processed_images.zip` (PowerShell) or `zip -r processed_images.zip processed_images` (bash).
-  - Upload `processed_images.zip` to GitHub Releases (create a release on the repo).
+  - Upload `processed_images.zip` to an external storage service.
   - Users can download and extract it to `processed_images/` folder.
   - Alternatively, for demo purposes, the app can use sample folders if available.
-- If you do not want to store large files in Git, add them to `.gitignore` or use Git LFS.
+- If you do not want to store large files in Git, add them to `.gitignore` or host them externally.
 - For production, make sure the deployed environment has enough memory for TensorFlow and the model.
 
 ## 📋 Requirements
 
 - Python 3.11+
-- TensorFlow 2.15+
-- Streamlit 1.28+
-- Medical imaging libraries (pydicom, opencv)
-- Data processing (pandas, numpy, scikit-learn)
+- TensorFlow 2.21.0 (optimized for Python 3.13 on Spaces)
+- Gradio 6.12.0
+- NumPy 2.1.0+
+- OpenCV 4.10.0+
+
+**Note**: See `requirements.txt` for pinned versions. Use `pip install -r requirements.txt` for reproducible environments.
 
 ## 📁 Project Structure
 
 ```
 prostate_diagnosis/
-├── app.py                    # Streamlit web application
+├── app.py                    # Gradio web application for TFLite inference
+├── convert_h5_to_tflite.py   # Convert Keras H5 model to TensorFlow Lite
 ├── create_better_model.py    # Main training script for 3-class model
 ├── test_model_accuracy.py    # Model validation script
 ├── copy_test_samples.py      # Create sample folders for testing
 ├── metadata.xlsx            # Patient metadata and biopsy reports
 ├── requirements.txt         # Python dependencies
+├── model.tflite              # TensorFlow Lite model for Gradio inference
 ├── processed_images/        # All converted PNG images (30,903 files)
 ├── low_risk_samples/        # Sample low-risk images for testing
 ├── medium_risk_samples/     # Sample medium-risk images for testing
